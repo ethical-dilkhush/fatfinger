@@ -1767,11 +1767,11 @@ export default function EnhancedFuturisticDashboard() {
     try {
       setTradingLoading(true)
       
-      // Fetch data from all three FatFinger API endpoints
+      // Fetch data from all three FatFinger API endpoints via proxy
       const [gainersResponse, losersResponse, newListingsResponse] = await Promise.all([
-        fetch('https://api.fatfinger.fun/tokens/search?sortBy=Price+(High+to+Low)&view=grid&page=1'),
-        fetch('https://api.fatfinger.fun/tokens/search?sortBy=Price+(Low+to+High)&view=grid&page=1'),
-        fetch('https://api.fatfinger.fun/tokens/search?sortBy=Newly+Created&view=grid&page=1')
+        fetch('/api/tokens?sortBy=Price+(High+to+Low)&view=grid&page=1'),
+        fetch('/api/tokens?sortBy=Price+(Low+to+High)&view=grid&page=1'),
+        fetch('/api/tokens?sortBy=Newly+Created&view=grid&page=1')
       ])
       
       const [gainersData, losersData, newListingsData] = await Promise.all([
@@ -1837,7 +1837,7 @@ export default function EnhancedFuturisticDashboard() {
         setVolumeLoading(true)
       }
       
-      const response = await fetch(`https://api.fatfinger.fun/tokens/search?sortBy=Newly+Created&view=grid&page=${page}`)
+      const response = await fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`)
       const data = await response.json()
       
       if (data && data.result && Array.isArray(data.result)) {
@@ -1890,7 +1890,7 @@ export default function EnhancedFuturisticDashboard() {
         setMarketCapLoading(true)
       }
       
-      const response = await fetch(`https://api.fatfinger.fun/tokens/search?sortBy=Market+Cap+(High+to+Low)&view=grid&page=${page}`)
+      const response = await fetch(`/api/tokens?sortBy=Market+Cap+(High+to+Low)&view=grid&page=${page}`)
       const data = await response.json()
       
       if (data && data.result && Array.isArray(data.result)) {
@@ -1943,7 +1943,7 @@ export default function EnhancedFuturisticDashboard() {
         setGraduatedLoading(true)
       }
       
-      const response = await fetch(`https://api.fatfinger.fun/tokens/search?sortBy=Progress+(High+to+Low)&view=grid&page=${page}`)
+      const response = await fetch(`/api/tokens?sortBy=Progress+(High+to+Low)&view=grid&page=${page}`)
       const data = await response.json()
       
       if (data && data.result && Array.isArray(data.result)) {
@@ -1998,7 +1998,7 @@ export default function EnhancedFuturisticDashboard() {
       }
       
       // Use a different API endpoint for Last Trade - sort by trading activity
-      const response = await fetch(`https://api.fatfinger.fun/tokens/search?sortBy=Volume+(High+to+Low)&view=grid&page=${page}`)
+      const response = await fetch(`/api/tokens?sortBy=Volume+(High+to+Low)&view=grid&page=${page}`)
       const data = await response.json()
       
       if (data && data.result && Array.isArray(data.result)) {
@@ -2028,7 +2028,7 @@ export default function EnhancedFuturisticDashboard() {
           const tokensWithIncreasedTrades: any[] = []
           const tokensWithoutIncreasedTrades: any[] = []
           
-          formattedTokens.forEach(token => {
+          formattedTokens.forEach((token: any) => {
             const currentCount = token.volumeCount
             const previousCount = previousTradeCounts.get(token.id) || 0
             currentTradeCounts.set(token.id, currentCount)
@@ -2058,10 +2058,10 @@ export default function EnhancedFuturisticDashboard() {
           })
           
           // Sort tokens with increased trades by recency (most recent first)
-          tokensWithIncreasedTrades.sort((a, b) => b.tradeIncreaseTime - a.tradeIncreaseTime)
+          tokensWithIncreasedTrades.sort((a: any, b: any) => b.tradeIncreaseTime - a.tradeIncreaseTime)
           
           // Sort other tokens by their previous increase time (most recent first), then by creation date
-          tokensWithoutIncreasedTrades.sort((a, b) => {
+          tokensWithoutIncreasedTrades.sort((a: any, b: any) => {
             if (a.tradeIncreaseTime && b.tradeIncreaseTime) {
               return b.tradeIncreaseTime - a.tradeIncreaseTime
             }
@@ -2078,12 +2078,12 @@ export default function EnhancedFuturisticDashboard() {
           setTradeIncreaseTimestamps(updatedTimestamps)
         } else {
           // For initial load and pagination, sort by volume (trading activity)
-          formattedTokens.sort((a, b) => b.volumeUSD - a.volumeUSD)
+          formattedTokens.sort((a: any, b: any) => b.volumeUSD - a.volumeUSD)
           setAllLastTradeTokens(formattedTokens)
           
           // Update trade counts for future real-time comparisons
           const currentTradeCounts = new Map<string, number>()
-          formattedTokens.forEach(token => {
+          formattedTokens.forEach((token: any) => {
             currentTradeCounts.set(token.id, token.volumeCount)
           })
           setPreviousTradeCounts(currentTradeCounts)
@@ -2115,7 +2115,7 @@ export default function EnhancedFuturisticDashboard() {
         setFreshLoading(true)
       }
       
-      const response = await fetch(`https://api.fatfinger.fun/tokens/search?sortBy=Newly+Created&view=grid&page=${page}`)
+      const response = await fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`)
       const data = await response.json()
       
       if (data && data.result && Array.isArray(data.result)) {
@@ -2164,7 +2164,7 @@ export default function EnhancedFuturisticDashboard() {
       setPumpSoonInitialLoading(true)
       
       // Fetch trending tokens first
-      const trendingResponse = await fetch('https://api.fatfinger.fun/tokens/trending')
+      const trendingResponse = await fetch('/api/tokens/trending')
       const trendingData = await trendingResponse.json()
       
       console.log('Pump Soon - Trending Data:', trendingData)
@@ -2188,7 +2188,7 @@ export default function EnhancedFuturisticDashboard() {
       let hasMore = true
       
       while (hasMore) {
-        const newlyCreatedResponse = await fetch(`https://api.fatfinger.fun/tokens/search?sortBy=Newly+Created&view=grid&page=${page}`)
+        const newlyCreatedResponse = await fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`)
         const newlyCreatedData = await newlyCreatedResponse.json()
         
         if (newlyCreatedData && newlyCreatedData.result && Array.isArray(newlyCreatedData.result)) {
