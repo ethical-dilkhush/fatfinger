@@ -1447,16 +1447,27 @@ export default function EnhancedFuturisticDashboard() {
   }
 
   // Trading Performance Monitoring Functions
-  const measureLatency = async (url: string = 'https://api.fatfinger.fun/network/info/price'): Promise<number> => {
+  const measureLatency = async (url: string = '/api/market-metrics'): Promise<number> => {
     try {
       const startTime = performance.now()
       const response = await fetch(url, { 
-        method: 'HEAD',
-        cache: 'no-store'
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+        }
       })
       const endTime = performance.now()
       
-      return response.ok ? Math.round(endTime - startTime) : 999
+      if (response.ok) {
+        // Try to parse JSON to ensure it's a valid response
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          return Math.round(endTime - startTime)
+        }
+      }
+      
+      return 999
     } catch (error) {
       console.error('Latency measurement failed:', error)
       return 999
@@ -1477,10 +1488,10 @@ export default function EnhancedFuturisticDashboard() {
 
   const estimateNetworkSpeed = async (): Promise<{download: number, upload: number}> => {
     try {
-      // Test download speed with a small image
-      const testImageUrl = 'https://api.fatfinger.fun/network/info/price'
+      // Test download speed with local API endpoint
+      const testEndpoint = '/api/market-metrics'
       const startTime = performance.now()
-      const response = await fetch(testImageUrl)
+      const response = await fetch(testEndpoint)
       const endTime = performance.now()
       
       if (response.ok) {
@@ -2689,8 +2700,8 @@ export default function EnhancedFuturisticDashboard() {
             </button>
 
             <div className="flex items-center space-x-2 md:space-x-4">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-lg md:rounded-xl flex items-center justify-center">
-                <Zap className="w-4 h-4 md:w-6 md:h-6 text-white" />
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center">
+                <img src="/ff.png" alt="FatFinger Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl" />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent">
