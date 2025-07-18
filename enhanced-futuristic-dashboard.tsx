@@ -1822,7 +1822,7 @@ export default function EnhancedFuturisticDashboard() {
   const [copied, setCopied] = useState(false)
   const [tradingLoading, setTradingLoading] = useState(false)
   const [activeMetric, setActiveMetric] = useState(0)
-  const [contractAddress] = useState("coming soon")
+  const [contractAddress] = useState("0x4C06CD568549FDcb6f2C78283726C38e9F57c8E0")
   const [lastUpdated, setLastUpdated] = useState<string>("")
 
   const [systemMetrics, setSystemMetrics] = useState([
@@ -3313,7 +3313,7 @@ export default function EnhancedFuturisticDashboard() {
             
             {/* Dexscreener */}
             <a 
-              href="#" 
+              href="https://fatfinger.fun/app/token/0x4C06CD568549FDcb6f2C78283726C38e9F57c8E0" 
               className="p-1.5 md:p-2 text-gray-300 hover:text-green-400 hover:bg-green-400/10 rounded-lg transition-all duration-200"
               title="Dexscreener"
             >
