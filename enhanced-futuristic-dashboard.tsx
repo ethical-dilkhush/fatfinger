@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Zap,
   TrendingUp,
@@ -20,11 +20,16 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  Wallet,
+  CheckCircle,
+  AlertCircle,
+  Send,
 } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { Input } from "@/components/ui/input"
 
 
 // Navigation items with crypto/trading focus
@@ -77,6 +82,20 @@ const navigationItems = [
     isActive: false,
     description: "Trending Up",
     color: "yellow",
+  },
+  {
+    title: "World Chat",
+    icon: MessageCircle,
+    isActive: false,
+    description: "Global Chat",
+    color: "indigo",
+  },
+  {
+    title: "Wallet Connect",
+    icon: Users,
+    isActive: false,
+    description: "Connect Wallet",
+    color: "emerald",
   },
 ]
 
@@ -1345,6 +1364,398 @@ function PumpSoonPage({ tokens, loading, onCopyMintAddress, currentPage, totalPa
   )
 }
 
+// Wallet Connect Page Component
+function WalletConnectPage({ walletAddress, isConnected, connectWallet, disconnectWallet }: {
+  walletAddress: string | null,
+  isConnected: boolean,
+  connectWallet: () => Promise<void>,
+  disconnectWallet: () => void
+}) {
+  const [isConnecting, setIsConnecting] = useState(false)
+
+  const handleConnect = async () => {
+    setIsConnecting(true)
+    try {
+      await connectWallet()
+    } catch (error) {
+      console.error('Failed to connect wallet:', error)
+    } finally {
+      setIsConnecting(false)
+    }
+  }
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent mb-4">
+          Wallet Connect
+        </h2>
+        <p className="text-gray-400 text-lg">
+          Connect your wallet to access World Chat and other features
+        </p>
+      </div>
+
+      {/* Wallet Connection Card */}
+      <Card className="bg-gradient-to-br from-amber-950/70 to-yellow-950/70 backdrop-blur-xl border border-amber-800/70">
+        <CardContent className="p-8">
+          <div className="flex flex-col items-center space-y-6">
+            {/* Wallet Icon */}
+            <div className="w-24 h-24 bg-gradient-to-br from-yellow-400/20 to-amber-400/20 rounded-full flex items-center justify-center">
+              <Wallet className="w-12 h-12 text-yellow-400" />
+            </div>
+
+            {/* Connection Status */}
+            {isConnected ? (
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center space-x-2 text-yellow-400">
+                  <CheckCircle className="w-6 h-6" />
+                  <span className="text-lg font-semibold">Wallet Connected</span>
+                </div>
+                <div className="bg-amber-950/50 rounded-lg p-4">
+                  <p className="text-sm text-gray-300 mb-2">Connected Address:</p>
+                  <p className="text-lg font-mono text-white">{formatAddress(walletAddress!)}</p>
+                </div>
+                <Button
+                  onClick={disconnectWallet}
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  Disconnect Wallet
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center space-x-2 text-gray-400">
+                  <AlertCircle className="w-6 h-6" />
+                  <span className="text-lg">Wallet Not Connected</span>
+                </div>
+                <p className="text-gray-400 max-w-md">
+                  Connect your MetaMask wallet to access World Chat and participate in the FatFinger community.
+                </p>
+                <Button
+                  onClick={handleConnect}
+                  disabled={isConnecting}
+                  className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-8 py-3 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isConnecting ? 'Connecting...' : 'Connect MetaMask'}
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Features Available After Connection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-gradient-to-br from-amber-950/50 to-yellow-950/50 backdrop-blur-xl border border-amber-800/50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <MessageCircle className="w-8 h-8 text-yellow-400" />
+              <h3 className="text-xl font-semibold text-white">World Chat</h3>
+            </div>
+            <p className="text-gray-300 mb-4">
+              Join the global conversation with other FatFinger traders and token enthusiasts.
+            </p>
+            <div className="flex items-center space-x-2">
+              {isConnected ? (
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              )}
+              <span className={`text-sm ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+                {isConnected ? 'Available' : 'Requires Wallet Connection'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-950/50 to-indigo-950/50 backdrop-blur-xl border border-purple-800/50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <Users className="w-8 h-8 text-purple-400" />
+              <h3 className="text-xl font-semibold text-white">Community Features</h3>
+            </div>
+            <p className="text-gray-300 mb-4">
+              Access exclusive features and participate in the FatFinger community with your wallet identity.
+            </p>
+            <div className="flex items-center space-x-2">
+              {isConnected ? (
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              )}
+              <span className={`text-sm ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+                {isConnected ? 'Available' : 'Requires Wallet Connection'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+// World Chat Page Component
+function WorldChatPage({ walletAddress, isConnected, setActiveNavItem }: {
+  walletAddress: string | null,
+  isConnected: boolean,
+  setActiveNavItem: (index: number) => void
+}) {
+  const [messages, setMessages] = useState<Array<{
+    id: string;
+    message: string;
+    wallet_address: string;
+    created_at: string;
+  }>>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [onlineCount, setOnlineCount] = useState(0)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  // Generate consistent color for each wallet address
+  const getWalletColor = (walletAddress: string) => {
+    const colors = [
+      { bg: 'from-red-400 to-pink-400', text: 'text-red-400' },
+      { bg: 'from-blue-400 to-indigo-400', text: 'text-blue-400' },
+      { bg: 'from-green-400 to-emerald-400', text: 'text-green-400' },
+      { bg: 'from-purple-400 to-violet-400', text: 'text-purple-400' },
+      { bg: 'from-yellow-400 to-amber-400', text: 'text-yellow-400' },
+      { bg: 'from-orange-400 to-red-400', text: 'text-orange-400' },
+      { bg: 'from-teal-400 to-cyan-400', text: 'text-teal-400' },
+      { bg: 'from-rose-400 to-pink-400', text: 'text-rose-400' },
+      { bg: 'from-lime-400 to-green-400', text: 'text-lime-400' },
+      { bg: 'from-sky-400 to-blue-400', text: 'text-sky-400' },
+      { bg: 'from-violet-400 to-purple-400', text: 'text-violet-400' },
+      { bg: 'from-emerald-400 to-teal-400', text: 'text-emerald-400' },
+    ]
+    
+    // Create a simple hash from wallet address
+    let hash = 0
+    for (let i = 0; i < walletAddress.length; i++) {
+      const char = walletAddress.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    
+    // Get color based on hash
+    const colorIndex = Math.abs(hash) % colors.length
+    return colors[colorIndex]
+  }
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !isConnected || !walletAddress) return
+
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: newMessage.trim(),
+          wallet_address: walletAddress,
+        }),
+      })
+
+      if (response.ok) {
+        setNewMessage('')
+        fetchMessages() // Refresh messages
+        // Scroll to bottom to show the new message
+        setTimeout(scrollToBottom, 200)
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/chat')
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(data.messages || [])
+        // Scroll to bottom after messages are loaded
+        setTimeout(scrollToBottom, 100)
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error)
+    }
+  }
+
+  const fetchOnlineUsers = async () => {
+    try {
+      const response = await fetch('/api/online-users')
+      if (response.ok) {
+        const data = await response.json()
+        setOnlineCount(data.count || 0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch online users:', error)
+    }
+  }
+
+  const updateUserStatus = async () => {
+    if (isConnected && walletAddress) {
+      try {
+        await fetch('/api/online-users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress,
+          }),
+        })
+      } catch (error) {
+        console.error('Failed to update user status:', error)
+      }
+    }
+  }
+
+  useEffect(() => {
+    fetchMessages()
+    fetchOnlineUsers()
+    
+    // Refresh messages every 3 seconds
+    const messagesInterval = setInterval(fetchMessages, 3000)
+    
+    // Refresh online users every 15 seconds
+    const onlineUsersInterval = setInterval(fetchOnlineUsers, 15000)
+    
+    // Update user status every 30 seconds if connected (more frequent)
+    const statusInterval = setInterval(updateUserStatus, 30000)
+    
+    // Initial status update if connected
+    updateUserStatus()
+    
+    return () => {
+      clearInterval(messagesInterval)
+      clearInterval(onlineUsersInterval)
+      clearInterval(statusInterval)
+    }
+  }, [isConnected, walletAddress])
+
+    // Remove the wallet connection requirement for viewing messages
+
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center relative">
+        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent mb-4">
+          World Chat
+        </h2>
+        <div className="flex items-center justify-center space-x-4">
+          <p className="text-gray-400 text-lg">
+            {isConnected ? `Connected as ${formatAddress(walletAddress!)}` : 'Connect wallet to participate'}
+          </p>
+          {/* Online Users Count */}
+          <div className="flex items-center space-x-2 bg-amber-950/50 border border-amber-800/50 rounded-full px-3 py-1">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+            <span className="text-sm text-yellow-400 font-medium">
+              {onlineCount} online
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Container */}
+      <Card className="bg-gradient-to-br from-amber-950/70 to-yellow-950/70 backdrop-blur-xl border border-amber-800/70">
+        <CardContent className="p-6">
+          {/* Messages */}
+          <div className="h-96 overflow-y-auto mb-4 space-y-3 bg-black/20 rounded-lg p-4 scrollbar-hide">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">
+                <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No messages yet. Start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((msg) => {
+                const userColor = getWalletColor(msg.wallet_address)
+                return (
+                  <div key={msg.id} className="flex items-start space-x-3">
+                    <div className={`w-8 h-8 bg-gradient-to-br ${userColor.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-xs font-bold text-white">
+                        {msg.wallet_address.slice(2, 4).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className={`text-sm font-medium ${userColor.text}`}>
+                          {formatAddress(msg.wallet_address)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatTime(msg.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-white text-sm break-words">{msg.message}</p>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+            {/* Scroll target */}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          {isConnected ? (
+            <div className="flex items-center space-x-3">
+              <Input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Type your message..."
+                className="flex-1 bg-black/30 border border-amber-800/50 text-white placeholder-gray-400 focus:border-amber-400"
+                disabled={isLoading}
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!newMessage.trim() || isLoading}
+                className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center space-x-3 p-4 bg-amber-950/30 border border-amber-800/50 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+              <span className="text-amber-400 text-sm">
+                Connect your wallet to send messages
+              </span>
+              <Button
+                onClick={() => setActiveNavItem(8)}
+                className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+              >
+                Connect Wallet
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 export default function EnhancedFuturisticDashboard() {
   const [activeNavItem, setActiveNavItem] = useState(0)
   
@@ -1396,6 +1807,12 @@ export default function EnhancedFuturisticDashboard() {
         setPumpSoonInitialLoading(true)
         fetchAllPumpSoonTokens()
         break
+      case 7: // World Chat
+        // No initial data fetching needed for chat
+        break
+      case 8: // Wallet Connect
+        // No initial data fetching needed for wallet connect
+        break
       default:
         break
     }
@@ -1427,6 +1844,10 @@ export default function EnhancedFuturisticDashboard() {
     walletHoldings: "0"
   })
 
+  // Wallet connection state
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [isWalletConnected, setIsWalletConnected] = useState(false)
+
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(contractAddress)
@@ -1446,6 +1867,102 @@ export default function EnhancedFuturisticDashboard() {
     }
   }
 
+  // Wallet connection functions
+  const connectWallet = async () => {
+    try {
+      if (!window.ethereum) {
+        alert('MetaMask is not installed. Please install MetaMask to connect your wallet.')
+        return
+      }
+
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
+      })
+
+      if (accounts.length > 0) {
+        const address = accounts[0]
+        setWalletAddress(address)
+        setIsWalletConnected(true)
+        localStorage.setItem('walletAddress', address)
+      }
+    } catch (error) {
+      console.error('Failed to connect wallet:', error)
+      throw error
+    }
+  }
+
+  const disconnectWallet = async () => {
+    // Remove user from online users when disconnecting
+    if (walletAddress) {
+      try {
+        await fetch('/api/online-users', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress,
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to remove user from online status:', error);
+      }
+    }
+    
+    setWalletAddress(null)
+    setIsWalletConnected(false)
+    localStorage.removeItem('walletAddress')
+  }
+
+  // Check if wallet is already connected on component mount
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      try {
+        if (window.ethereum) {
+          const accounts = await window.ethereum.request({
+            method: 'eth_accounts'
+          })
+          
+          if (accounts.length > 0) {
+            const address = accounts[0]
+            setWalletAddress(address)
+            setIsWalletConnected(true)
+            localStorage.setItem('walletAddress', address)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check wallet connection:', error)
+      }
+    }
+
+    checkWalletConnection()
+
+    // Listen for account changes
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          const address = accounts[0]
+          setWalletAddress(address)
+          setIsWalletConnected(true)
+          localStorage.setItem('walletAddress', address)
+        } else {
+          // Call disconnect function to properly clean up online status
+          disconnectWallet()
+        }
+      }
+
+      if (window.ethereum) {
+        window.ethereum.on('accountsChanged', handleAccountsChanged)
+      }
+
+      return () => {
+        if (window.ethereum?.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
+        }
+      }
+    }
+  }, [])
+
   // Helper function to fetch SUI price
   const fetchSuiPrice = async (): Promise<number> => {
     try {
@@ -1457,6 +1974,8 @@ export default function EnhancedFuturisticDashboard() {
       return 0.377216; // fallback price
     }
   };
+
+
 
   // Trading Performance Monitoring Functions
   const measureLatency = async (url: string = '/api/market-metrics'): Promise<number> => {
@@ -2895,6 +3414,19 @@ export default function EnhancedFuturisticDashboard() {
                       totalPages={pumpSoonTotalPages}
                       onPageChange={handlePumpSoonPageChange}
                       totalTokens={allPumpSoonTokensComplete.length}
+                    />
+                  ) : activeNavItem === 7 ? (
+                    <WorldChatPage 
+                      walletAddress={walletAddress}
+                      isConnected={isWalletConnected}
+                      setActiveNavItem={setActiveNavItem}
+                    />
+                  ) : activeNavItem === 8 ? (
+                    <WalletConnectPage 
+                      walletAddress={walletAddress}
+                      isConnected={isWalletConnected}
+                      connectWallet={connectWallet}
+                      disconnectWallet={disconnectWallet}
                     />
                   ) : (
                 <>

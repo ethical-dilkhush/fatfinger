@@ -93,23 +93,34 @@ body {
   }
 }
 
-/* Marquee Animation */
+/* Hide scrollbar for chat window */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Marquee animation for moving text */
 .marquee {
+  width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .marquee-content {
   display: inline-block;
-  animation: marquee 20s linear infinite;
+  animation: scroll 30s linear infinite;
 }
 
-@keyframes marquee {
+@keyframes scroll {
   0% {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
   }
 }
 
