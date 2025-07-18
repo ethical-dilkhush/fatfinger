@@ -1446,6 +1446,18 @@ export default function EnhancedFuturisticDashboard() {
     }
   }
 
+  // Helper function to fetch SUI price
+  const fetchSuiPrice = async (): Promise<number> => {
+    try {
+      const response = await fetch('/api/sui-price');
+      const data = await response.json();
+      return data.price || 0.377216; // fallback price
+    } catch (error) {
+      console.error('Error fetching SUI price:', error);
+      return 0.377216; // fallback price
+    }
+  };
+
   // Trading Performance Monitoring Functions
   const measureLatency = async (url: string = '/api/market-metrics'): Promise<number> => {
     try {
@@ -1778,11 +1790,12 @@ export default function EnhancedFuturisticDashboard() {
     try {
       setTradingLoading(true)
       
-      // Fetch data from all three FatFinger API endpoints via proxy
-      const [gainersResponse, losersResponse, newListingsResponse] = await Promise.all([
+      // Fetch data from all three FatFinger API endpoints via proxy and SUI price
+      const [gainersResponse, losersResponse, newListingsResponse, suiPrice] = await Promise.all([
         fetch('/api/tokens?sortBy=Price+(High+to+Low)&view=grid&page=1'),
         fetch('/api/tokens?sortBy=Price+(Low+to+High)&view=grid&page=1'),
-        fetch('/api/tokens?sortBy=Newly+Created&view=grid&page=1')
+        fetch('/api/tokens?sortBy=Newly+Created&view=grid&page=1'),
+        fetchSuiPrice()
       ])
       
       const [gainersData, losersData, newListingsData] = await Promise.all([
@@ -1797,9 +1810,9 @@ export default function EnhancedFuturisticDashboard() {
         ticker: token.ticker,
         name: token.name,
         image: token.image ? `https://gateway.pinata.cloud/ipfs/${token.image}` : '',
-        price: parseFloat(token.price || '0'),
-        marketCap: parseFloat(token.marketCap || '0'),
-        volume: parseFloat(token.volume?.all || '0'),
+        price: parseFloat(token.price || '0') * suiPrice,
+        marketCap: parseFloat(token.marketCap || '0') * suiPrice,
+        volume: parseFloat(token.volume?.all || '0') * suiPrice,
         priceChange: parseFloat(token.priceChange?.['1h'] || '0')
       })) || []
       
@@ -1809,9 +1822,9 @@ export default function EnhancedFuturisticDashboard() {
         ticker: token.ticker,
         name: token.name,
         image: token.image ? `https://gateway.pinata.cloud/ipfs/${token.image}` : '',
-        price: parseFloat(token.price || '0'),
-        marketCap: parseFloat(token.marketCap || '0'),
-        volume: parseFloat(token.volume?.all || '0'),
+        price: parseFloat(token.price || '0') * suiPrice,
+        marketCap: parseFloat(token.marketCap || '0') * suiPrice,
+        volume: parseFloat(token.volume?.all || '0') * suiPrice,
         priceChange: parseFloat(token.priceChange?.['1h'] || '0')
       })) || []
       
@@ -1821,9 +1834,9 @@ export default function EnhancedFuturisticDashboard() {
         ticker: token.ticker,
         name: token.name,
         image: token.image ? `https://gateway.pinata.cloud/ipfs/${token.image}` : '',
-        price: parseFloat(token.price || '0'),
-        marketCap: parseFloat(token.marketCap || '0'),
-        volume: parseFloat(token.volume?.all || '0'),
+        price: parseFloat(token.price || '0') * suiPrice,
+        marketCap: parseFloat(token.marketCap || '0') * suiPrice,
+        volume: parseFloat(token.volume?.all || '0') * suiPrice,
         priceChange: parseFloat(token.priceChange?.['1h'] || '0')
       })) || []
       
@@ -1848,8 +1861,12 @@ export default function EnhancedFuturisticDashboard() {
         setVolumeLoading(true)
       }
       
-      const response = await fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`)
-      const data = await response.json()
+      const [tokenResponse, suiPrice] = await Promise.all([
+        fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`),
+        fetchSuiPrice()
+      ])
+      
+      const data = await tokenResponse.json()
       
       if (data && data.result && Array.isArray(data.result)) {
         const formattedTokens = data.result.map((token: any) => ({
@@ -1862,8 +1879,8 @@ export default function EnhancedFuturisticDashboard() {
           x: token.socials?.twitter ? `https://twitter.com/${token.socials.twitter}` : '',
           telegram: token.socials?.telegram ? `https://t.me/${token.socials.telegram}` : '',
           mintAddress: token.tokenAddress,
-          marketcap: parseFloat(token.marketCap || '0'),
-          volumeUSD: parseFloat(token.volume?.all || '0'),
+          marketcap: parseFloat(token.marketCap || '0') * suiPrice,
+          volumeUSD: parseFloat(token.volume?.all || '0') * suiPrice,
           volumeCount: token.tradeCount?.all || 0,
           progressPercent: (token.progress || 0) * 100,
           createdAt: token.createdAt || new Date().toISOString()
@@ -1901,8 +1918,12 @@ export default function EnhancedFuturisticDashboard() {
         setMarketCapLoading(true)
       }
       
-      const response = await fetch(`/api/tokens?sortBy=Market+Cap+(High+to+Low)&view=grid&page=${page}`)
-      const data = await response.json()
+      const [tokenResponse, suiPrice] = await Promise.all([
+        fetch(`/api/tokens?sortBy=Market+Cap+(High+to+Low)&view=grid&page=${page}`),
+        fetchSuiPrice()
+      ])
+      
+      const data = await tokenResponse.json()
       
       if (data && data.result && Array.isArray(data.result)) {
         const formattedTokens = data.result.map((token: any) => ({
@@ -1915,8 +1936,8 @@ export default function EnhancedFuturisticDashboard() {
           x: token.socials?.twitter ? `https://twitter.com/${token.socials.twitter}` : '',
           telegram: token.socials?.telegram ? `https://t.me/${token.socials.telegram}` : '',
           mintAddress: token.tokenAddress,
-          marketcap: parseFloat(token.marketCap || '0'),
-          volumeUSD: parseFloat(token.volume?.all || '0'),
+          marketcap: parseFloat(token.marketCap || '0') * suiPrice,
+          volumeUSD: parseFloat(token.volume?.all || '0') * suiPrice,
           volumeCount: token.tradeCount?.all || 0,
           progressPercent: (token.progress || 0) * 100,
           createdAt: token.createdAt || new Date().toISOString()
@@ -1954,8 +1975,12 @@ export default function EnhancedFuturisticDashboard() {
         setGraduatedLoading(true)
       }
       
-      const response = await fetch(`/api/tokens?sortBy=Progress+(High+to+Low)&view=grid&page=${page}`)
-      const data = await response.json()
+      const [tokenResponse, suiPrice] = await Promise.all([
+        fetch(`/api/tokens?sortBy=Progress+(High+to+Low)&view=grid&page=${page}`),
+        fetchSuiPrice()
+      ])
+      
+      const data = await tokenResponse.json()
       
       if (data && data.result && Array.isArray(data.result)) {
         // Filter tokens to only show those with progress = 100 (graduated)
@@ -1971,8 +1996,8 @@ export default function EnhancedFuturisticDashboard() {
           x: token.socials?.twitter ? `https://twitter.com/${token.socials.twitter}` : '',
           telegram: token.socials?.telegram ? `https://t.me/${token.socials.telegram}` : '',
           mintAddress: token.tokenAddress,
-          marketcap: parseFloat(token.marketCap || '0'),
-          volumeUSD: parseFloat(token.volume?.all || '0'),
+          marketcap: parseFloat(token.marketCap || '0') * suiPrice,
+          volumeUSD: parseFloat(token.volume?.all || '0') * suiPrice,
           volumeCount: token.tradeCount?.all || 0,
           progressPercent: (token.progress || 0) * 100,
           createdAt: token.createdAt || new Date().toISOString()
@@ -2009,8 +2034,12 @@ export default function EnhancedFuturisticDashboard() {
       }
       
       // Use a different API endpoint for Last Trade - sort by trading activity
-      const response = await fetch(`/api/tokens?sortBy=Volume+(High+to+Low)&view=grid&page=${page}`)
-      const data = await response.json()
+      const [tokenResponse, suiPrice] = await Promise.all([
+        fetch(`/api/tokens?sortBy=Volume+(High+to+Low)&view=grid&page=${page}`),
+        fetchSuiPrice()
+      ])
+      
+      const data = await tokenResponse.json()
       
       if (data && data.result && Array.isArray(data.result)) {
         const formattedTokens = data.result.map((token: any) => ({
@@ -2023,8 +2052,8 @@ export default function EnhancedFuturisticDashboard() {
           x: token.socials?.twitter ? `https://twitter.com/${token.socials.twitter}` : '',
           telegram: token.socials?.telegram ? `https://t.me/${token.socials.telegram}` : '',
           mintAddress: token.tokenAddress,
-          marketcap: parseFloat(token.marketCap || '0'),
-          volumeUSD: parseFloat(token.volume?.all || '0'),
+          marketcap: parseFloat(token.marketCap || '0') * suiPrice,
+          volumeUSD: parseFloat(token.volume?.all || '0') * suiPrice,
           volumeCount: token.tradeCount?.all || 0,
           progressPercent: (token.progress || 0) * 100,
           createdAt: token.createdAt || new Date().toISOString()
@@ -2126,8 +2155,12 @@ export default function EnhancedFuturisticDashboard() {
         setFreshLoading(true)
       }
       
-      const response = await fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`)
-      const data = await response.json()
+      const [tokenResponse, suiPrice] = await Promise.all([
+        fetch(`/api/tokens?sortBy=Newly+Created&view=grid&page=${page}`),
+        fetchSuiPrice()
+      ])
+      
+      const data = await tokenResponse.json()
       
       if (data && data.result && Array.isArray(data.result)) {
         const formattedTokens = data.result.map((token: any) => ({
@@ -2140,8 +2173,8 @@ export default function EnhancedFuturisticDashboard() {
           x: token.socials?.twitter ? `https://twitter.com/${token.socials.twitter}` : '',
           telegram: token.socials?.telegram ? `https://t.me/${token.socials.telegram}` : '',
           mintAddress: token.tokenAddress,
-          marketcap: parseFloat(token.marketCap || '0'),
-          volumeUSD: parseFloat(token.volume?.all || '0'),
+          marketcap: parseFloat(token.marketCap || '0') * suiPrice,
+          volumeUSD: parseFloat(token.volume?.all || '0') * suiPrice,
           volumeCount: token.tradeCount?.all || 0,
           progressPercent: (token.progress || 0) * 100,
           createdAt: token.createdAt || new Date().toISOString()
@@ -2174,8 +2207,12 @@ export default function EnhancedFuturisticDashboard() {
     try {
       setPumpSoonInitialLoading(true)
       
-      // Fetch trending tokens first
-      const trendingResponse = await fetch('/api/tokens/trending')
+      // Fetch trending tokens and SUI price first
+      const [trendingResponse, suiPrice] = await Promise.all([
+        fetch('/api/tokens/trending'),
+        fetchSuiPrice()
+      ])
+      
       const trendingData = await trendingResponse.json()
       
       console.log('Pump Soon - Trending Data:', trendingData)
@@ -2229,8 +2266,8 @@ export default function EnhancedFuturisticDashboard() {
             x: token.socials?.twitter ? `https://twitter.com/${token.socials.twitter}` : '',
             telegram: token.socials?.telegram ? `https://t.me/${token.socials.telegram}` : '',
             mintAddress: token.tokenAddress,
-            marketcap: parseFloat(token.marketCap || '0'),
-            volumeUSD: parseFloat(token.volume?.all || '0'),
+            marketcap: parseFloat(token.marketCap || '0') * suiPrice,
+            volumeUSD: parseFloat(token.volume?.all || '0') * suiPrice,
             volumeCount: token.tradeCount?.all || 0,
             progressPercent: (token.progress || 0) * 100,
             createdAt: token.createdAt || new Date().toISOString(),
@@ -3418,7 +3455,7 @@ export default function EnhancedFuturisticDashboard() {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-green-400">${token.price.toFixed(6)}</span>
+                                  <span className="text-xs text-green-400">${token.marketCap >= 1000000 ? (token.marketCap / 1000000).toFixed(1) + 'M' : token.marketCap >= 1000 ? (token.marketCap / 1000).toFixed(1) + 'K' : token.marketCap.toFixed(0)}</span>
                                   <TrendingUp className="w-4 h-4 text-green-400" />
                                 </div>
                               </div>
@@ -3449,7 +3486,7 @@ export default function EnhancedFuturisticDashboard() {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-red-400">${token.price.toFixed(6)}</span>
+                                  <span className="text-xs text-red-400">${token.marketCap >= 1000000 ? (token.marketCap / 1000000).toFixed(1) + 'M' : token.marketCap >= 1000 ? (token.marketCap / 1000).toFixed(1) + 'K' : token.marketCap.toFixed(0)}</span>
                                   <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
                                 </div>
                               </div>
@@ -3480,7 +3517,7 @@ export default function EnhancedFuturisticDashboard() {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-yellow-400">${token.price.toFixed(6)}</span>
+                                  <span className="text-xs text-yellow-400">${token.marketCap >= 1000000 ? (token.marketCap / 1000000).toFixed(1) + 'M' : token.marketCap >= 1000 ? (token.marketCap / 1000).toFixed(1) + 'K' : token.marketCap.toFixed(0)}</span>
                                   <ExternalLink className="w-4 h-4 text-yellow-400" />
                                 </div>
                               </div>
